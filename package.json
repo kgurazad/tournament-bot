@@ -1,0 +1,27 @@
+{
+  "name": "yuki",
+  "version": "1.0.0",
+  "description": "discord bot for creating and running online quizbowl tournaments",
+  "main": "tournament.js",
+  "scripts": {
+    "test": "node tournament.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kgurazad/tournament-bot.git"
+  },
+  "keywords": [
+    "discord"
+  ],
+  "author": "Karan Gurazada",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kgurazad/tournament-bot/issues"
+  },
+  "homepage": "https://github.com/kgurazad/tournament-bot#readme",
+  "dependencies": {
+    "discord.js": "^12.2.0",
+    "google-spreadsheet": "^3.0.11",
+    "parse-url": "^5.0.1"
+  }
+}
