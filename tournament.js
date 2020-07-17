@@ -347,7 +347,7 @@ var help = function (channel, sections) {
     var helpMessage = {
 	color: '#29bb9c', // same as discord aqua
 	title: 'Tournament Bot Help',
-	description: 'This bot is able to perform initial server setup, create and delete rooms, and add, remove, or transfer teams to and from rooms. It supports both conventional bot-style syntax and natural language-style [NL-style] syntax. Commands acting on existing teams or rooms require you to tag the role of the team you are operating on and/or the text channels representing the rooms you are operating on. Unless otherwise stated, commands can only be run by users with the Control Room or Staff roles.',
+	description: 'This bot is able to perform initial server setup, create and delete rooms, and add, remove, or transfer teams to and from rooms. It supports both conventional bot-style syntax and natural language-style [NL-style] syntax. Commands acting on existing teams or rooms require you to tag the role of the team you are operating on and/or the text channels representing the rooms you are operating on. Unless otherwise stated, commands can only be run by users with the Control Room or Staff roles. Add .force to the end of your command to override having to confirm.',
 	fields: []
     };
     for (var section of sections) {
@@ -533,7 +533,12 @@ var massCreateTeams = async function (guild, prefix, startIndex, endIndex) {
     return;
 }
 
-var confirm = async function (message, prompt, failCallback, successCallback) {
+var confirm = async function (message, prompt, force, failCallback, successCallback) {
+	if (force) {
+		successCallback();
+		return;
+	}
+	
     message.channel.send(prompt).then(function (msg) {
 	msg.react('👍');
 	msg.awaitReactions(function (reaction, user) {
@@ -549,13 +554,14 @@ var confirm = async function (message, prompt, failCallback, successCallback) {
 }
 
 client.on('message', function (message) {
+	var force = message.content.indexOf('.force') >= 0 ? 1 : 0;
     if (message.content.indexOf('.a') === 0 && (message.member.roles.highest.name === 'Control Room' || message.member.roles.highest.name === 'Staff')) {
 	try {
 	    var roles = message.mentions.roles.array();
 	    var role = roles[0];
 	    var channels = message.mentions.channels.array();
 	    var to = channels[0].parent;
-	    confirm(message, 'Are you sure you want to add team ' + role.toString() + ' to room "' + to.name + '"? Confirm by reacting with \:thumbsup:.', function () {
+	    confirm(message, 'Are you sure you want to add team ' + role.toString() + ' to room "' + to.name + '"? Confirm by reacting with \:thumbsup:.', force, function () {
 		message.channel.send('No confirmation was received. The addition is cancelled.');
 	    }, function () {
 		add(role, to).then(function () {
@@ -575,7 +581,7 @@ client.on('message', function (message) {
 	    var role = roles[0];
 	    var channels = message.mentions.channels.array();
 	    var from = channels[0].parent;
-	    confirm(message, 'Are you sure you want to remove team ' + role.toString() + ' from room "' + from.name + '"? Confirm by reacting with \:thumbsup:.', function () {
+	    confirm(message, 'Are you sure you want to remove team ' + role.toString() + ' from room "' + from.name + '"? Confirm by reacting with \:thumbsup:.', force, function () {
 		message.channel.send('No confirmation was received. The removal is cancelled.');
 	    }, function	() {
 		add(role, to).then(function () {
@@ -596,7 +602,7 @@ client.on('message', function (message) {
 	    var channels = message.mentions.channels.array();
 	    var from = channels[0].parent;
 	    var to = channels[1].parent;
-	    confirm(message, 'Are you sure you want to transfer team ' + role.toString() + ' from room "' + from.name + '" to room "' + to.name + '"? Confirm by reacting with \:thumbsup:.', function () {
+	    confirm(message, 'Are you sure you want to transfer team ' + role.toString() + ' from room "' + from.name + '" to room "' + to.name + '"? Confirm by reacting with \:thumbsup:.', force, function () {
 		message.channel.send('No confirmation was received. The transfer is cancelled.');
 	    }, function	() {
 		remove(role, from).then(function () {
@@ -634,7 +640,7 @@ client.on('message', function (message) {
 	    help(message.channel, ['e']);
 	}
     } else if (message.content.indexOf('.i') === 0 && message.member === message.channel.guild.owner) {
-	confirm(message, 'Are you sure you want to initialize the server? Every channel and role currently in the server will be deleted. Confirm by reacting with \:thumbsup:.', function () {
+	confirm(message, 'Are you sure you want to initialize the server? Every channel and role currently in the server will be deleted. Confirm by reacting with \:thumbsup:.', force, function () {
 	    message.channel.send('No confirmation was received. The initialization is cancelled.');
 	}, function () {
 	    init(message.channel.guild, message.channel).catch(function () {
@@ -645,7 +651,7 @@ client.on('message', function (message) {
 	try {
 	    var content = message.content.substr(message.content.indexOf(' ') + 1).trim();
 	    var names = content.split(/["“”]/g);
-	    confirm(message, 'Are you sure you want to create the room[s] ' + content + '? Confirm by reacting with \:thumbsup:.', function () {
+	    confirm(message, 'Are you sure you want to create the room[s] ' + content + '? Confirm by reacting with \:thumbsup:.', force, function () {
 		message.channel.send('No confirmation was received. The creation is cancelled.');
 	    }, function () {
 		for (var i = 1; i < names.length; i += 2) {
@@ -694,7 +700,7 @@ client.on('message', function (message) {
 	try {
 	    var channels = message.mentions.channels.array();
 	    // if (parent.children.length === 2) {
-	    confirm(message, 'Are you sure you want to delete the specified room[s]? Confirm by reacting with \:thumbsup:.', function () {
+	    confirm(message, 'Are you sure you want to delete the specified room[s]? Confirm by reacting with \:thumbsup:.', force, function () {
 		message.channel.send('No confirmation was received. The deletion is cancelled.');
 	    }, function () {
 		for (var text of channels) {
@@ -719,7 +725,7 @@ client.on('message', function (message) {
     } else if (message.content.indexOf('.f') === 0 && message.member.roles.highest.name === 'Control Room') {
 	try {
 	    var teams = message.mentions.roles.array();
-	    confirm(message, 'Are you sure you want to create a finals room with teams ' + teams[0].toString() + ' and ' + teams[1].toString() + '? Confirm by reacting with \:thumbsup:.', function () {
+	    confirm(message, 'Are you sure you want to create a finals room with teams ' + teams[0].toString() + ' and ' + teams[1].toString() + '? Confirm by reacting with \:thumbsup:.', force, function () {
 		message.channel.send('No confirmation was received. The creation is cancelled.');
 	    }, function () {
 		finalsRoom(message.channel.guild, teams[0], teams[1]).then(function (textChannel) {
@@ -744,7 +750,7 @@ client.on('message', function (message) {
 	    if (sheetIndex === Infinity) {
 		sheetIndex = 0;
 	    }
-	    confirm(message, 'Are you sure you want to generate room schedules from the specified spreadsheet? Confirm by reacting with \:thumbsup:.', function () {
+	    confirm(message, 'Are you sure you want to generate room schedules from the specified spreadsheet? Confirm by reacting with \:thumbsup:.', force, function () {
 		message.channel.send('No confirmation was received. The schedule generation is cancelled.');
 	    }, function () {
 		schedule(message.channel.guild, docID, sheetIndex).then(function () {
@@ -766,7 +772,7 @@ client.on('message', function (message) {
 		throw 'No range provided to .m, sending help dialog to channel.';
 	    }
 	    var range = message.content.substr(spaceIndex + 1).trim();
-	    confirm(message, 'Are you sure you want to mass create teams from the range ' + range + '? Confirm by reacting with \:thumbsup:.', function () {
+	    confirm(message, 'Are you sure you want to mass create teams from the range ' + range + '? Confirm by reacting with \:thumbsup:.', force, function () {
 		message.channel.send('No confirmation was received. The creation is cancelled.');
 	    }, function () {
 		var splitByBracket = range.split('[');
