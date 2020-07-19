@@ -56,6 +56,16 @@ var helpSections = {
     }
 }
 
+var hasRole = function (member, roleName) {
+    var roles = member.roles.cache.array();
+    for (var role of roles) {
+	if (role.name === roleName) {
+	    return true;
+	}
+    }
+    return false;
+}
+
 var lockPerms = async function (channel) {
     // syncs channel's perms with its parent category
     await channel.lockPermissions();
@@ -343,11 +353,11 @@ var init = async function (guild) {
 }
 
 var help = function (channel, sections) {
-    sections = sections || ['i', 'c', 'f', 'd', 'n', 'm', 's', 'a', 'r', 't', 'e', 'h'];
+    sections = sections || ['i', 'c', 'f', 'd', 'n', 'm', 'a', 'r', 't', 'e', 'h'];
     var helpMessage = {
 	color: '#29bb9c', // same as discord aqua
 	title: 'Tournament Bot Help',
-	description: 'This bot is able to perform initial server setup, create and delete rooms, and add, remove, or transfer teams to and from rooms. It supports both conventional bot-style syntax and natural language-style [NL-style] syntax. Commands acting on existing teams or rooms require you to tag the role of the team you are operating on and/or the text channels representing the rooms you are operating on. Unless otherwise stated, commands can only be run by users with the Control Room or Staff roles. Add .force to the end of your command to override having to confirm.',
+	description: 'This bot is able to perform initial server setup, create and delete rooms, and add, remove, or transfer teams to and from rooms. It supports both conventional bot-style syntax and natural language-style [NL-style] syntax. Commands acting on existing teams or rooms require you to tag the role of the team you are operating on and/or the text channels representing the rooms you are operating on. Unless otherwise stated, commands can only be run by users with the Control Room or Staff roles. Add --force to the end of your command to override having to confirm.',
 	fields: []
     };
     for (var section of sections) {
@@ -519,7 +529,7 @@ var massCreateTeams = async function (guild, prefix, startIndex, endIndex) {
 	while (color[0] + color[1] + color[2] < 64) {
 	    color = [Math.floor(Math.random()*256), Math.floor(Math.random()*256), Math.floor(Math.random()*256)];
 	}
-	console.log(name + ' ' + color[0] + ' ' + color[1] + ' ' + color[2]);
+//	console.log(name + ' ' + color[0] + ' ' + color[1] + ' ' + color[2]);
 	await guild.roles.create({
 	    data: {
 		name: prefix + String(i),
@@ -534,11 +544,11 @@ var massCreateTeams = async function (guild, prefix, startIndex, endIndex) {
 }
 
 var confirm = async function (message, prompt, force, failCallback, successCallback) {
-	if (force) {
-		successCallback();
-		return;
-	}
-	
+    if (force) {
+	successCallback();
+	return;
+    }
+    
     message.channel.send(prompt).then(function (msg) {
 	msg.react('👍');
 	msg.awaitReactions(function (reaction, user) {
@@ -554,8 +564,15 @@ var confirm = async function (message, prompt, force, failCallback, successCallb
 }
 
 client.on('message', function (message) {
-	var force = message.content.indexOf('.force') >= 0 ? 1 : 0;
-    if (message.content.indexOf('.a') === 0 && (message.member.roles.highest.name === 'Control Room' || message.member.roles.highest.name === 'Staff')) {
+    // var force = message.content.indexOf('--force') >= 0 ? 1 : 0;
+    var force = false;
+    var forceIndex = message.content.indexOf('--force');
+    if (forceIndex > -1) {
+	force = true;
+	message.content = message.content.replace('--force', '');
+    }
+        
+    if (message.content.indexOf('.a') === 0 && (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff'))) {
 	try {
 	    var roles = message.mentions.roles.array();
 	    var role = roles[0];
@@ -575,7 +592,7 @@ client.on('message', function (message) {
 	    console.error(e);
 	    help(message.channel, ['a']);
 	}
-    } else if (message.content.indexOf('.r') === 0 && (message.member.roles.highest.name === 'Control Room' || message.member.roles.highest.name === 'Staff')) {
+    } else if (message.content.indexOf('.r') === 0 && (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff'))) {
 	try {
 	    var roles = message.mentions.roles.array();
 	    var role = roles[0];
@@ -584,7 +601,7 @@ client.on('message', function (message) {
 	    confirm(message, 'Are you sure you want to remove team ' + role.toString() + ' from room "' + from.name + '"? Confirm by reacting with \:thumbsup:.', force, function () {
 		message.channel.send('No confirmation was received. The removal is cancelled.');
 	    }, function	() {
-		add(role, to).then(function () {
+		remove(role, from).then(function () {
 		    message.channel.send('Team ' + role.toString() + ' has been removed from room "' + from.name + '."');
 		}).catch(function (error) {
 		    console.error(error);
@@ -595,7 +612,7 @@ client.on('message', function (message) {
 	    console.error(e);
 	    help(message.channel, ['r']);
 	}
-    } else if (message.content.indexOf('.t') === 0 && (message.member.roles.highest.name === 'Control Room' || message.member.roles.highest.name === 'Staff')) {
+    } else if (message.content.indexOf('.t') === 0 && (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff'))) {
 	try {
 	    var roles = message.mentions.roles.array();
 	    var role = roles[0];
@@ -621,14 +638,14 @@ client.on('message', function (message) {
 	    console.error(e);
 	    help(message.channel, ['t']);
 	}
-    } else if (message.content.indexOf('.e') === 0 && message.member.roles.highest.name === 'Control Room') {
+    } else if (message.content.indexOf('.e') === 0 && hasRole(message.member, 'Control Room')) {
 	try {
 	    var channels = message.mentions.channels.array();
 	    var clearChannel = function (index) {
 		empty(channels[index].parent).then(function () {
 		    message.channel.send('Emptied room "' + channels[index].parent.name + '."');
 		    if (index < channels.length - 1) {
-			empty(index + 1);
+			clearChannel(index + 1);
 		    } else {
 			message.channel.send('All specified rooms emptied.');
 		    }
@@ -647,10 +664,14 @@ client.on('message', function (message) {
 		help(message.channel, ['i']);
 	    });
 	});
-    } else if (message.content.indexOf('.c') === 0 && message.member.roles.highest.name === 'Control Room') {
+    } else if (message.content.indexOf('.c') === 0 && hasRole(message.member, 'Control Room')) {
 	try {
 	    var content = message.content.substr(message.content.indexOf(' ') + 1).trim();
 	    var names = content.split(/["“”]/g);
+	    if (names.length < 2) {
+		help(message.channel, ['c']);
+		return;
+	    }
 	    confirm(message, 'Are you sure you want to create the room[s] ' + content + '? Confirm by reacting with \:thumbsup:.', force, function () {
 		message.channel.send('No confirmation was received. The creation is cancelled.');
 	    }, function () {
@@ -671,7 +692,7 @@ client.on('message', function (message) {
 	    help(message.channel, ['c']);
 	}
 	/*
-	  } else if (message.content.indexOf('.c') === 0 && message.member.roles.highest.name === 'Control Room') {
+	  } else if (message.content.indexOf('.c') === 0 && hasRole(message.member, 'Control Room')) {
 	  // todo add the ability to create multiple rooms at once
 	  try {
 	  var name = message.content.substr(message.content.indexOf(' ') + 1).trim();
@@ -696,7 +717,7 @@ client.on('message', function (message) {
 	  help(message.channel, ['c']);
 	  }
 	*/
-    } else if (message.content.indexOf('.d') === 0 && message.member.roles.highest.name === 'Control Room') {
+    } else if (message.content.indexOf('.d') === 0 && hasRole(message.member, 'Control Room')) {
 	try {
 	    var channels = message.mentions.channels.array();
 	    // if (parent.children.length === 2) {
@@ -722,7 +743,7 @@ client.on('message', function (message) {
 	    console.error(e);
 	    help(message.channel, ['d']);
 	}
-    } else if (message.content.indexOf('.f') === 0 && message.member.roles.highest.name === 'Control Room') {
+    } else if (message.content.indexOf('.f') === 0 && hasRole(message.member, 'Control Room')) {
 	try {
 	    var teams = message.mentions.roles.array();
 	    confirm(message, 'Are you sure you want to create a finals room with teams ' + teams[0].toString() + ' and ' + teams[1].toString() + '? Confirm by reacting with \:thumbsup:.', force, function () {
@@ -741,7 +762,7 @@ client.on('message', function (message) {
 	    console.error(e);
 	    help(message.channel, ['f']);
 	}
-    } else if (message.content.indexOf('.s') === 0 && message.member.roles.highest.name === 'Control Room') {
+    } else if (message.content.indexOf('.s') === 0 && hasRole(message.member, 'Control Room')) {
 	try {
 	    var content = message.content.split(/\s+/g);
 	    var url = parseUrl(content[1]);
@@ -765,13 +786,16 @@ client.on('message', function (message) {
 	    console.error(e);
 	    help(message.channel, ['s']);
 	}
-    } else if (message.content.indexOf('.m') === 0 && message.member.roles.highest.name === 'Control Room') {
+    } else if (message.content.indexOf('.m') === 0 && hasRole(message.member, 'Control Room')) {
 	try {
-	    var spaceIndex = message.content.trim().indexOf(' ');
-	    if (spaceIndex === -1) {
-		throw 'No range provided to .m, sending help dialog to channel.';
-	    }
-	    var range = message.content.substr(spaceIndex + 1).trim();
+	    /*
+	      var spaceIndex = message.content.trim().indexOf(' ');
+	      if (spaceIndex === -1) {
+	      throw 'No range provided to .m, sending help dialog to channel.';
+	      }
+	      var range = message.content.substr(spaceIndex + 1).trim();
+	    */
+	    var range = message.content.split(/\s+/g)[1];
 	    confirm(message, 'Are you sure you want to mass create teams from the range ' + range + '? Confirm by reacting with \:thumbsup:.', force, function () {
 		message.channel.send('No confirmation was received. The creation is cancelled.');
 	    }, function () {
@@ -792,7 +816,7 @@ client.on('message', function (message) {
 	    console.error(e);
 	    help(message.channel, ['n', 'm']);
 	}
-    } else if (message.content.indexOf('.') === 0) {
+    } else if (message.content.indexOf('.') === 0 && (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff'))) {
 	help(message.channel);
     }
     return;
