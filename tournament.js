@@ -70,8 +70,8 @@ var lockPerms = async function (channel) {
     // syncs channel's perms with its parent category
     await channel.lockPermissions();
     await channel.lockPermissions();
-//    await channel.lockPermissions();
-//    await channel.lockPermissions();
+    await channel.lockPermissions();
+    await channel.lockPermissions();
 }
 
 var getMentions = function (content, guild) {
