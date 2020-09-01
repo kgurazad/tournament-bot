@@ -858,7 +858,7 @@ var processCommand = async function (command, message) {
 		});
 	    });
 	}
-    } else if (command.indexOf('.h') === 0 && (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff'))) {
+    } else if (command.indexOf('.h') === 0) {
 	help(message.channel);
     } else if (command.indexOf('.') === 0 && (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff'))) {
 	message.channel.send('Use the `.help` command to get started!');
