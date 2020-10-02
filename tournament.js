@@ -548,8 +548,8 @@ var massCreateTeams = async function (guild, prefix, startIndex, endIndex) {
 		position: 2
 	    }
 	});
-	var huddleText = await createRoom(guild, name + ' Huddle', true);
-	await add(teamRole, huddleText.parent);
+//	var huddleText = await createRoom(guild, name + ' Huddle', true);
+//	await add(teamRole, huddleText.parent);
     }
     return;
 }
