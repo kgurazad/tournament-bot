@@ -20,7 +20,7 @@ var helpSections = {
     },
     'd': {
 	name: 'Delete Room',
-	value: 'This command can only be run by users with the Control Room role.\nExample bot-style usage: `.d #room-1`\nExample NL-style usage: `.delete Room 1`'
+	value: 'This command can only be run by users with the Control Room role.\nExample bot-style usage: `.d #room-1-text`\nExample NL-style usage: `.delete #room-1-text`'
     },
     'n': {
 	name: 'Manually Create/Delete Team',
@@ -36,19 +36,19 @@ var helpSections = {
     },
     'a': {
 	name: 'Add Team to Room',
-	value: 'Example bot-style usage: `.a @A2 #room-1`\nExample NL-style usage: `.add @A2 to #room-1`'
+	value: 'Example bot-style usage: `.a @A2 #room-1-text`\nExample NL-style usage: `.add @A2 to #room-1-text`'
     },
     'r': {
 	name: 'Remove Team from Room',
-	value: 'Example bot-style usage: `.r @A2 #room-1`\nExample NL-style usage: `.remove @A2 from #room-1`'
+	value: 'Example bot-style usage: `.r @A2 #room-1-text`\nExample NL-style usage: `.remove @A2 from #room-1-text`'
     },
     't': {
 	name: 'Transfer Team between Rooms',
-	value: 'This command requires you to tag two channels; tag the room that you are transferring the team __from__ first, and tag the channel that you are transferring the team __to__ second.\nExample bot-style usage: `.t @A2 #room-1 #room-3`\nExample NL-style usage: `.transfer @A2 from #room-1 to #room-3`'
+	value: 'This command requires you to tag two channels; tag the room that you are transferring the team __from__ first, and tag the channel that you are transferring the team __to__ second.\nExample bot-style usage: `.t @A2 #room-1-text #room-3-text`\nExample NL-style usage: `.transfer @A2 from #room-1-text to #room-3-text`'
     },
     'e': {
 	name: 'Empty Room',
-	value: 'This command removes all teams from a given room.\nExample bot-style usage: `.e #room-1`\nExample NL-style usage: `.empty #room-1`'
+	value: 'This command removes all teams from a given room.\nExample bot-style usage: `.e #room-1-text`\nExample NL-style usage: `.empty #room-1-text`'
     },
     'h': {
 	name: 'Display This Help',
@@ -386,7 +386,7 @@ var help = function (channel, sections) {
     var helpMessage = {
 	color: '#29bb9c', // same as discord aqua
 	title: 'Tournament Bot Help',
-	description: 'This bot is able to perform initial server setup, create and delete rooms, and add, remove, or transfer teams to and from rooms. It supports both conventional bot-style syntax and natural language-style [NL-style] syntax. Commands acting on existing teams or rooms require you to tag the role of the team you are operating on and/or the text channels representing the rooms you are operating on. Unless otherwise stated, commands can only be run by users with the Control Room or Staff roles. Add --force to the end of your command to override having to confirm.',
+	description: 'This bot is able to perform initial server setup, create and delete rooms, and add, remove, or transfer teams to and from rooms. It supports both conventional bot-style syntax and natural language-style [NL-style] syntax. Commands acting on existing teams or rooms require you to tag the role of the team you are operating on and/or the text channels representing the rooms you are operating on. Unless otherwise stated, commands can only be run by users with the Control Room or Staff roles. **Multiple commands can be stacked in one message, as long as they are separated by newlines. Add --force to the end of your command to override having to confirm.**',
 	fields: []
     };
     for (var section of sections) {
