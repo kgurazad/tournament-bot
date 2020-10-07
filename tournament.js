@@ -97,12 +97,12 @@ var getMentions = function (content, guild) {
 var add = async function (role, to) {
     await to.updateOverwrite(role, {
 	'VIEW_CHANNEL': true,
-	'SEND_MESSAGES': true,
-	'CONNECT': true,
-	'ADD_REACTIONS': true,
-	'USE_EXTERNAL_EMOJIS': true,
-	'ATTACH_FILES': true,
-	'EMBED_LINKS': true
+//	'SEND_MESSAGES': true,
+//	'CONNECT': true,
+//	'ADD_REACTIONS': true,
+//	'USE_EXTERNAL_EMOJIS': true,
+//	'ATTACH_FILES': true,
+//	'EMBED_LINKS': true
     });
     var children = to.children.array();
     await lockPerms(children[0]);
@@ -113,12 +113,12 @@ var add = async function (role, to) {
 var remove = async function (role, from) {
     await from.updateOverwrite(role, {
 	'VIEW_CHANNEL': false,
-	'SEND_MESSAGES': false,
-	'CONNECT': false,
-	'ADD_REACTIONS': false,
-	'USE_EXTERNAL_EMOJIS': false,
-	'ATTACH_FILES': false,
-	'EMBED_LINKS': false
+//	'SEND_MESSAGES': false,
+//	'CONNECT': false,
+//	'ADD_REACTIONS': false,
+//	'USE_EXTERNAL_EMOJIS': false,
+//	'ATTACH_FILES': false,
+//	'EMBED_LINKS': false
     });
     var	children = from.children.array();
     await lockPerms(children[0]);
