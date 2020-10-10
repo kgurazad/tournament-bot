@@ -585,14 +585,16 @@ var confirm = async function (message, prompt, force, failCallback, successCallb
     });
 }
 
-var processCommand = async function (command, message) {
+var processCommand = async function (command, message, force) {
     // var force = command.indexOf('--force') >= 0 ? 1 : 0;
+    /*
     var force = false;
     var forceIndex = command.indexOf('--force');
     if (forceIndex > -1) {
 	force = true;
 	command = command.replace('--force', '');
     }
+    */
     var mentions = getMentions(command, message.guild);
     if (command.indexOf('.a') === 0 && (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff'))) {
 	try {
@@ -868,6 +870,12 @@ var processCommand = async function (command, message) {
 
 client.on('message', async function (message) {
     var content = message.content.split('\n');
+    var force = false;                                                                                                                                                            
+    var forceIndex = content.indexOf('--force');                                                                                                                                  
+    if (forceIndex > -1) {                                                                                      
+        force = true;                                                                                                           
+        content = content.replace(/\-\-force/g, '');                                                                       
+    }
     for (var str of content) {
 	await processCommand(str, message);
     }
