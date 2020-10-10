@@ -869,15 +869,16 @@ var processCommand = async function (command, message, force) {
 };
 
 client.on('message', async function (message) {
-    var content = message.content.split('\n');
-    var force = false;                                                                                                                                                            
-    var forceIndex = content.indexOf('--force');                                                                                                                                  
-    if (forceIndex > -1) {                                                                                      
-        force = true;                                                                                                           
-        content = content.replace(/\-\-force/g, '');                                                                       
+    var force = false;
+    var content = message.content;
+    var forceIndex = content.indexOf('--force');
+    if (forceIndex > -1) {
+        force = true;
+        content = content.replace(/\-\-force/g, '');
     }
-    for (var str of content) {
-	await processCommand(str, message);
+    contentSplit = content.split('\n');
+    for (var str of contentSplit) {
+	await processCommand(str, message, force);
     }
     return;
 });
