@@ -669,7 +669,7 @@ var processCommand = async function (command, message, force) {
 	    console.error(e);
 	    help(message.channel, ['t']);
 	}
-    } else if (command.indexOf('.e') === 0 && hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff')) {
+    } else if (command.indexOf('.e') === 0 && (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff'))) {
 	try {
 	    var channels = mentions.channels;
 	    confirm(message, 'Are you sure you want to empty the specified rooms? Confirm by reacting with \:thumbsup:.', force, function () {
