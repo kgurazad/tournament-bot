@@ -97,30 +97,32 @@ var getMentions = function (content, guild) {
 var add = async function (role, to) {
     await to.updateOverwrite(role, {
 	'VIEW_CHANNEL': true,
-//	'SEND_MESSAGES': true,
-//	'CONNECT': true,
-//	'ADD_REACTIONS': true,
-//	'USE_EXTERNAL_EMOJIS': true,
-//	'ATTACH_FILES': true,
-//	'EMBED_LINKS': true
+	'SEND_MESSAGES': true,
+	'ADD_REACTIONS': true,
+	'READ_MESSAGE_HISTORY': false,
+	'CONNECT': true,
+	'SPEAK': true
     });
     var children = to.children.array();
+    await lockPerms(children[0]);
+    await lockPerms(children[1]);
     await lockPerms(children[0]);
     await lockPerms(children[1]);
     return;
 }
 
 var remove = async function (role, from) {
-    await from.updateOverwrite(role, {
-	'VIEW_CHANNEL': false,
-//	'SEND_MESSAGES': false,
-//	'CONNECT': false,
-//	'ADD_REACTIONS': false,
-//	'USE_EXTERNAL_EMOJIS': false,
-//	'ATTACH_FILES': false,
-//	'EMBED_LINKS': false
+    await to.updateOverwrite(role, {
+        'VIEW_CHANNEL': false,
+        'SEND_MESSAGES': false,
+	'ADD_REACTIONS': false,
+	'READ_MESSAGE_HISTORY':	false,
+        'CONNECT': false,
+        'SPEAK': false
     });
     var	children = from.children.array();
+    await lockPerms(children[0]);
+    await lockPerms(children[1]);
     await lockPerms(children[0]);
     await lockPerms(children[1]);
     return;
@@ -131,7 +133,7 @@ var empty = async function (room) {
     for (var overwrite of overwrites) {
 	var role = await room.guild.roles.fetch(overwrite.id);
 	try {
-	    //	    console.log(role.name);
+	    // console.log(role.name);
 	    if (role.name !== '@everyone' && role.name !== 'Staff' && role.name !== 'Spectator') {
 		await overwrite.delete();
 	    }
@@ -142,6 +144,8 @@ var empty = async function (room) {
 	}
     }
     var children = room.children.array();
+    await lockPerms(children[0]);
+    await lockPerms(children[1]);
     await lockPerms(children[0]);
     await lockPerms(children[1]);
     return;
@@ -398,6 +402,9 @@ var help = function (channel, sections) {
     channel.send({embed: helpMessage});
 }
 
+
+// busted scheduler, kinda sucks
+// try using rosenberg schedules? we can just hardcode them right
 var schedule = async function (guild, docID, sheetIndex) {
     var doc = new GoogleSpreadsheet(docID);
     await doc.useApiKey(config.apiKey);
@@ -665,17 +672,19 @@ var processCommand = async function (command, message, force) {
     } else if (command.indexOf('.e') === 0 && hasRole(message.member, 'Control Room')) {
 	try {
 	    var channels = mentions.channels;
-	    var clearChannel = function (index) {
-		empty(channels[index].parent).then(function () {
-		    message.channel.send('Emptied room "' + channels[index].parent.name + '."');
-		    if (index < channels.length - 1) {
-			clearChannel(index + 1);
-		    } else {
-			message.channel.send('All specified rooms emptied.');
-		    }
-		});
-	    }
-	    clearChannel(0);
+	    confirm(message, 'Are you sure you want to empty the specified rooms? Confirm by reacting with \:thumbsup:.', force, function () {
+		var clearChannel = function (index) {
+		    empty(channels[index].parent).then(function () {
+			message.channel.send('Emptied room "' + channels[index].parent.name + '."');
+			if (index < channels.length - 1) {
+			    clearChannel(index + 1);
+			} else {
+			    message.channel.send('All specified rooms emptied.');
+			}
+		    });
+		}
+		clearChannel(0);
+	    });
 	} catch (e) {
 	    console.error(e);
 	    help(message.channel, ['e']);
