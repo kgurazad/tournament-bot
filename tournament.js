@@ -36,7 +36,7 @@ var helpSections = {
     },
     'b': {
 	name: 'Change Server Bitrate',
-	value: 'This command can only be run by users with the Control Room role. This command sets the bitrate of every voice channel in the server to the specified value in kbps. Increasing bitrate may make server audio crisper, while decreasing bitrate may help those with bad connections hear better. The bitrate of an individual voice channel can be changed in the setings for that channel. \nExample bot-style usage: `.b 32`\nExample NL-style usage: `.bitrate 32 kbps`' 
+	value: 'This command can only be run by users with the Control Room role. This command sets the bitrate of every voice channel in the server to the specified value in kbps. Increasing bitrate may make server audio crisper, while decreasing bitrate may help those with bad connections hear better. The bitrate of an individual voice channel can be changed in the setings for that channel. \nExample bot-style usage: `.b 32`\nExample NL-style usage: `.bitrate 32`' 
     },
     's': {
 	name: 'Create Room Schedules from Google Sheets',
@@ -82,8 +82,8 @@ var lockPerms = async function (channel) {
     await channel.lockPermissions();
 }
 
-var getMentions = function (content, guild) {
-    var splitOnSpaces = content.split(/\s+/);
+var getMentions = function (command, guild) {
+    var splitOnSpaces = command.split(/\s+/);
     var mentions = {
         roles: [],
         channels: []
@@ -896,7 +896,7 @@ var processCommand = async function (command, message, force) {
     } else if (command.indexOf('.p') === 0 && (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff'))) {
 	try {
 	    var splitCommand = command.split(/["“”]/g);
-	    var oldRole = getMentions(command, guild).roles[0];
+	    var oldRole = getMentions(command, message.guild).roles[0];
 	    var oldCode = oldRole.name;
 	    var newCode = splitCommand[1];
 	    confirm(message, 'Are you sure you want to remap team <@&' + oldRole.id + '> to "' + newCode + '"? Confirm by reacting with \:thumbsup:.', force, function () {
@@ -911,6 +911,7 @@ var processCommand = async function (command, message, force) {
 		});
 	    });
 	} catch (e) {
+	    console.error(e);
 	    help(message.channel, ['p']);
 	}
     } else if (command.indexOf('.') === 0 && (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff'))) {
