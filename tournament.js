@@ -28,7 +28,15 @@ var helpSections = {
     },
     'm': {
 	name: 'Mass Create Teams',
-	value: 'This command can only be run by users with the Control Room role. Specify a prefix and a range of numbers using this notation: `Prefix[Start...End]`. The bot will automatically create roles for each number in the specified range and randomly assign colors.\nExample bot-style usage: `.m A[1-8]`\nExample NL-style usage: `.mass-create-teams A[1-8]`'
+	value: 'This command can only be run by users with the Control Room role. Specify a prefix and a range of numbers using this notation: `Prefix[Start-End]`. The bot will automatically create roles for each number in the specified range and randomly assign colors.\nExample bot-style usage: `.m A[1-8]`\nExample NL-style usage: `.mass-create-teams A[1-8]`'
+    },
+    'p': {
+	name: 'Remap Team Role Codes for Rebracketing',
+	value: 'This command can only be run by users with the Control Room role. This command can be used to change the name of a team role from that team\'s code in their prelims bracket to that team\'s code in their playoffs bracket, or more generally for any kind of rebracketing. Mention the role whose name you wish to change, and put the new code in quotes. \nExample bot-style usage: `.p @A1 "P1"`\nExample NL-style usage: `.playoff-remap team @A1 to "P1"`'
+    },
+    'b': {
+	name: 'Change Server Bitrate',
+	value: 'This command can only be run by users with the Control Room role. This command sets the bitrate of every voice channel in the server to the specified value in kbps. Increasing bitrate may make server audio crisper, while decreasing bitrate may help those with bad connections hear better. The bitrate of an individual voice channel can be changed in the setings for that channel. \nExample bot-style usage: `.b 32`\nExample NL-style usage: `.bitrate 32 kbps`' 
     },
     's': {
 	name: 'Create Room Schedules from Google Sheets',
@@ -386,7 +394,7 @@ var init = async function (guild) {
 }
 
 var help = function (channel, sections) {
-    sections = sections || ['i', 'c', 'f', 'd', 'n', 'm', 'a', 'r', 't', 'e', 'h'];
+    sections = sections || ['i', 'c', 'f', 'd', 'n', 'm', 'p', 'a', 'r', 't', 'e', 'h'];
     var helpMessage = {
 	color: '#29bb9c', // same as discord aqua
 	title: 'Tournament Bot Help',
@@ -568,6 +576,11 @@ var setGuildBitrate = async function (bitrate, guild) {
 //	    console.log('set bitrate for ' + channel.name);
 	}
     }
+    return;
+}
+
+var remapTeam = async function (role, name) {
+    role.setName(name);
     return;
 }
 
@@ -872,13 +885,33 @@ var processCommand = async function (command, message, force) {
 		});
 	    });
 	}
-    } else if (command.indexOf('.h') === 0) {
+    } else if (command.indexOf('.h') === 0 && (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff'))) {
 	var sections = command.split(/\s+/g);
 	if (sections.length > 1) {
 	    sections.shift();
 	    help(message.channel, sections);
 	} else {
 	    help(message.channel);
+	}
+    } else if (command.indexOf('.p') === 0 && (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff'))) {
+	try {
+	    var splitCommand = command.split(/["“”]/g);
+	    var oldRole = getMentions(command, guild).roles[0];
+	    var oldCode = oldRole.name;
+	    var newCode = splitCommand[1];
+	    confirm(message, 'Are you sure you want to remap team <@&' + oldRole.id + '> to "' + newCode + '"? Confirm by reacting with \:thumbsup:.', force, function () {
+		message.channel.send('No confirmation was received. The remapping is cancelled.');
+	    }, function () {
+		remapTeam(oldRole, newCode).then(function () {
+		    message.channel.send('Team "' + oldCode + '" is now mapped to <@&' + oldRole.id + '>.');  
+		}).catch(function (error) {
+		    console.error(error);
+		    message.channel.send('Team <@&' + oldRole.id + '> could not be renamed. Please manually rename it by going to Server Settings > Roles.');
+		    help(message.channel, ['p']);
+		});
+	    });
+	} catch (e) {
+	    help(message.channel, ['p']);
 	}
     } else if (command.indexOf('.') === 0 && (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff'))) {
 	message.channel.send('Use the `.help` command to get started!');
