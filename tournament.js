@@ -673,6 +673,8 @@ var processCommand = async function (command, message, force) {
 	try {
 	    var channels = mentions.channels;
 	    confirm(message, 'Are you sure you want to empty the specified rooms? Confirm by reacting with \:thumbsup:.', force, function () {
+		message.channel.send('No confirmation was received. No rooms were emptied.');
+	    }, function () {
 		var clearChannel = function (index) {
 		    empty(channels[index].parent).then(function () {
 			message.channel.send('Emptied room "' + channels[index].parent.name + '."');
