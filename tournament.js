@@ -28,7 +28,7 @@ var helpSections = {
     },
     'm': {
 	name: 'Mass Create Teams',
-	value: 'This command can only be run by users with the Control Room role. Specify a prefix and a range of numbers using this notation: `Prefix[Start...End]`. The bot will automatically create roles for each number in the specified range and randomly assign colors.\nExample bot-style usage: `.m A[1...8]`\nExample NL-style usage: `.mass-create-teams A[1...8]`'
+	value: 'This command can only be run by users with the Control Room role. Specify a prefix and a range of numbers using this notation: `Prefix[Start...End]`. The bot will automatically create roles for each number in the specified range and randomly assign colors.\nExample bot-style usage: `.m A[1-8]`\nExample NL-style usage: `.mass-create-teams A[1-8]`'
     },
     's': {
 	name: 'Create Room Schedules from Google Sheets',
@@ -836,9 +836,9 @@ var processCommand = async function (command, message, force) {
 	    }, function () {
 		var splitByBracket = range.split('[');
 		var prefix = splitByBracket[0];
-		var splitByEllipsis = splitByBracket[1].split('...');
-		var startIndex = Number(splitByEllipsis[0]);
-		var endIndex = Number(splitByEllipsis[1].substr(0, splitByEllipsis[1].length - 1));
+		var splitByDash = splitByBracket[1].split('-');
+		var startIndex = Number(splitByDash[0]);
+		var endIndex = Number(splitByDash[1].substr(0, splitByDash[1].length - 1));
 		massCreateTeams(message.channel.guild, prefix, startIndex, endIndex).then(function () {
 		    message.channel.send('The teams were created.');
 		}).catch(function (error) {
@@ -858,6 +858,7 @@ var processCommand = async function (command, message, force) {
 	} catch (e) {}
 	if (!bitrate || bitrate < 8) {
 	    message.channel.send('An invalid bitrate was specified. Please try again.');
+	    help(message.channel, ['b']);
 	} else {
 	    confirm(message, 'Are you sure you want to set the bitrate of every voice channel in the server to ' + bitrate + ' kbps? Confirm by reacting with \:thumbsup:.', force, function () {
 		message.channel.send('No confirmation was received. The server bitrate remains unchanged.');
@@ -872,7 +873,13 @@ var processCommand = async function (command, message, force) {
 	    });
 	}
     } else if (command.indexOf('.h') === 0) {
-	help(message.channel);
+	var sections = command.split(/\s+/g);
+	if (sections.length > 1) {
+	    sections.shift();
+	    help(message.channel, sections);
+	} else {
+	    help(message.channel);
+	}
     } else if (command.indexOf('.') === 0 && (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff'))) {
 	message.channel.send('Use the `.help` command to get started!');
     }
