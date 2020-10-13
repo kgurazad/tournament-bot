@@ -120,7 +120,7 @@ var add = async function (role, to) {
 }
 
 var remove = async function (role, from) {
-    await to.updateOverwrite(role, {
+    await from.updateOverwrite(role, {
         'VIEW_CHANNEL': false,
         'SEND_MESSAGES': false,
 	'ADD_REACTIONS': false,
