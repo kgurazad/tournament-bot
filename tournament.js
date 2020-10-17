@@ -74,6 +74,15 @@ var hasRole = function (member, roleName) {
     return false;
 }
 
+var getRole = function (guild, roleName) {
+    for (var role of guild.roles.cache.array()) {
+	if (role.name === roleName) {
+            return role;
+        }
+    }
+    return null;
+}
+
 var lockPerms = async function (channel) {
     // syncs channel's perms with its parent category
     await channel.lockPermissions();
@@ -114,8 +123,6 @@ var add = async function (role, to) {
     var children = to.children.array();
     await lockPerms(children[0]);
     await lockPerms(children[1]);
-    await lockPerms(children[0]);
-    await lockPerms(children[1]);
     return;
 }
 
@@ -129,8 +136,6 @@ var remove = async function (role, from) {
         'SPEAK': false
     });
     var	children = from.children.array();
-    await lockPerms(children[0]);
-    await lockPerms(children[1]);
     await lockPerms(children[0]);
     await lockPerms(children[1]);
     return;
@@ -164,6 +169,7 @@ var createRoom = async function (guild, name, staffSpectatorInvisible) {
     await category.updateOverwrite(guild.roles.everyone, {
 	'VIEW_CHANNEL': false
     });
+    // did not reimplement with getRole() because this way we make one pass instead of two
     var staffRole = 0, spectatorRole = 0;
     for (var role of guild.roles.cache.array()) {
 	if (role.name === 'Staff' && staffRole === 0) {
@@ -885,7 +891,7 @@ var processCommand = async function (command, message, force) {
 		});
 	    });
 	}
-    } else if (command.indexOf('.h') === 0 /*&& (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff'))*/) {
+    } else if (command.indexOf('.h') === 0 && (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff')) && getRole(message.guild, 'Control Room')) {
 	var sections = command.split(/\s+/g);
 	if (sections.length > 1) {
 	    sections.shift();
@@ -893,13 +899,26 @@ var processCommand = async function (command, message, force) {
 	} else {
 	    help(message.channel);
 	}
+    } else if (command.indexOf('.h') === 0 && !getRole(message.guild, 'Control Room')) {
+	var sections = command.split(/\s+/g);
+        if (sections.length > 1) {
+            sections.shift();
+            help(message.channel, sections);
+        } else {
+            help(message.channel);
+        }
     } else if (command.indexOf('.p') === 0 && (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff'))) {
 	try {
 	    var splitCommand = command.split(/["“”]/g);
 	    var oldRole = getMentions(command, message.guild).roles[0];
 	    var oldCode = oldRole.name;
 	    var newCode = splitCommand[1];
-	    confirm(message, 'Are you sure you want to remap team <@&' + oldRole.id + '> to "' + newCode + '"? Confirm by reacting with \:thumbsup:.', force, function () {
+	    var findRole = getRole(message.guild, newCode);
+	    if (findRole) {
+		message.channel.send('Could not remap team <@&' + oldRole.id + '> to the new code "' + newCode + '" because team <@&' + findRole.id + '> already exists. Please select a unique new code for <@&' + oldRole.id + '>.');
+		return;
+	    }
+	    confirm(message, 'Are you sure you want to remap team <@&' + oldRole.id + '> to the new code "' + newCode + '"? Confirm by reacting with \:thumbsup:.', force, function () {
 		message.channel.send('No confirmation was received. The remapping is cancelled.');
 	    }, function () {
 		remapTeam(oldRole, newCode).then(function () {
@@ -914,7 +933,9 @@ var processCommand = async function (command, message, force) {
 	    console.error(e);
 	    help(message.channel, ['p']);
 	}
-    } else if (command.indexOf('.') === 0 /*&& (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff'))*/) {
+    } else if (command.indexOf('.') === 0 && (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff')) && getRole(message.guild, 'Control Room')) {
+	message.channel.send('Use the `.help` command to get started!');
+    } else if (command.indexOf('.') === 0 && !getRole(message.guild, 'Control Room')) {
 	message.channel.send('Use the `.help` command to get started!');
     }
     return;
