@@ -855,7 +855,7 @@ var processCommand = async function (command, message, force) {
 	    }, function () {
 		var splitByBracket = range.split('[');
 		var prefix = splitByBracket[0];
-		var splitByDash = splitByBracket[1].split('-');
+		var splitByDash = splitByBracket[1].split(/(-|...)/g);
 		var startIndex = Number(splitByDash[0]);
 		var endIndex = Number(splitByDash[1].substr(0, splitByDash[1].length - 1));
 		massCreateTeams(message.channel.guild, prefix, startIndex, endIndex).then(function () {
