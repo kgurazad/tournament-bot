@@ -857,7 +857,7 @@ var processCommand = async function (command, message, force) {
 		var prefix = splitByBracket[0];
 		var splitByDash = splitByBracket[1].split(/(\-|\.\.\.)/g);
 		var startIndex = Number(splitByDash[0]);
-		var endIndex = Number(splitByDash[1].substr(0, splitByDash[1].length - 1));
+		var endIndex = Number(splitByDash[2].substr(0, splitByDash[1].length - 1));
 		massCreateTeams(message.channel.guild, prefix, startIndex, endIndex).then(function () {
 		    message.channel.send('The teams were created.');
 		}).catch(function (error) {
@@ -959,7 +959,11 @@ client.on('message', async function (message) {
 client.login(config.token);
 client.on('ready', function () {
     for (var guild of client.guilds.cache.array()) {
-	console.log(guild.name + ' ' + guild.owner.user.tag);
+	try {
+	    console.log(guild.name + ' ' + guild.owner.user.tag);
+	} catch (e) {
+	    console.log(guild.name);
+	}
     }
     client.user.setActivity('.help', {type: 'LISTENING'}).then(function () {
 	console.log('up and running!');
