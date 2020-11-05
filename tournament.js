@@ -854,10 +854,15 @@ var processCommand = async function (command, message, force) {
 		message.channel.send('No confirmation was received. The creation is cancelled.');
 	    }, function () {
 		var splitByBracket = range.split('[');
+		console.log(splitByBracket);
 		var prefix = splitByBracket[0];
+		console.log(prefix);
 		var splitByDash = splitByBracket[1].split(/(\-|\.\.\.)/g);
+		console.log(splitByDash)
 		var startIndex = Number(splitByDash[0]);
-		var endIndex = Number(splitByDash[2].substr(0, splitByDash[1].length - 1));
+		console.log(startIndex);
+		var endIndex = Number(splitByDash[2].substr(0, splitByDash[2].length - 1));
+		console.log(endIndex);
 		massCreateTeams(message.channel.guild, prefix, startIndex, endIndex).then(function () {
 		    message.channel.send('The teams were created.');
 		}).catch(function (error) {
