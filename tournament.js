@@ -692,7 +692,7 @@ var processCommand = async function (command, message, force) {
 	try {
 	    var channels = mentions.channels;
 	    if (channels.length < 1) {
-		message.channel.send('Please specify a channel to empty.');
+		message.channel.send('Please specify a channel [or multiple channels] to empty.');
 		return;
 	    }
 	    confirm(message, 'Are you sure you want to empty the specified rooms? Confirm by reacting with \:thumbsup:.', force, function () {
