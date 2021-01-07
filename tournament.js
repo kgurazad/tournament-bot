@@ -691,6 +691,10 @@ var processCommand = async function (command, message, force) {
     } else if (command.indexOf('.e') === 0 && (hasRole(message.member, 'Control Room') || hasRole(message.member, 'Staff'))) {
 	try {
 	    var channels = mentions.channels;
+	    if (channels.length < 1) {
+		message.channel.send('Please specify a channel to empty.');
+		return;
+	    }
 	    confirm(message, 'Are you sure you want to empty the specified rooms? Confirm by reacting with \:thumbsup:.', force, function () {
 		message.channel.send('No confirmation was received. No rooms were emptied.');
 	    }, function () {
