@@ -379,11 +379,10 @@ var init = async function (guild) {
     await announcementsChannel.updateOverwrite(guild.roles.everyone, {
 	'SEND_MESSAGES': false
     });
-    var inviteMessage = await announcementsChannel.send('Permanent invite link: ');
     await announcementsChannel.send(guild.name + ' is committed to ensuring that quizbowl is safe, open, and welcoming for everyone. If anyone at this tournament makes you feel unsafe or unwelcome, please do not hesitate to reach out to anyone with the ' + controlRoomRole.toString() + ' or ' + staffRole.toString() + ' roles. In addition, please feel free to make use of the quizbowl misconduct form, a joint effort by PACE, NAQT, ACF, and IAC [https://tinyurl.com/qbmisconduct]. Anyone can report any incident they see, no matter where it occured or how small it may seem.'); 
+    var invite = await announcementsChannel.createInvite({ maxAge: 0 });
+    await announcementsChannel.send('Permanent invite link: ' + invite.url);
     var generalChannel = await guild.channels.create('general', {parent: hubCategory});
-    var	invite = await generalChannel.createInvite({ maxAge: 0 });
-    await inviteMessage.edit('Permanent invite link: ' + invite.url);
     var hallwayVoiceChannel = await guild.channels.create('hallway-voice', {parent: hubCategory, type: 'voice'});
     // todo set hub permissions
     var honorPledgeCategory = await guild.channels.create('Honor Pledge', {type: 'category'});
