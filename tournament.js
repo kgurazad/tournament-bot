@@ -179,12 +179,14 @@ var createRoom = async function (guild, name, staffSpectatorInvisible) {
 	}
     }
     if (!staffSpectatorInvisible) {
-	await category.updateOverwrite(staffRole, {
-	    'VIEW_CHANNEL': true
-	});
-	await category.updateOverwrite(spectatorRole, {
-	    'VIEW_CHANNEL': true
-	});
+	try {
+	    await category.updateOverwrite(staffRole, {
+		'VIEW_CHANNEL': true
+	    });
+	    await category.updateOverwrite(spectatorRole, {
+		'VIEW_CHANNEL': true
+	    });
+	} catch (e) { console.error(e); } // sometimes people delete staff/spectator
     }
     var cleanName = name.replace(/\s+/g, '-').toLowerCase();
     var text = await guild.channels.create(cleanName + '-text', {parent: category});
