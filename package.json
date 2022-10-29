@@ -4,7 +4,8 @@
   "description": "discord bot for creating and running online quizbowl tournaments",
   "main": "tournament.js",
   "scripts": {
-    "test": "node tournament.js"
+    "test": "which node",
+    "start": "node tournament.js"
   },
   "repository": {
     "type": "git",
@@ -20,8 +21,9 @@
   },
   "homepage": "https://github.com/kgurazad/tournament-bot#readme",
   "dependencies": {
-    "discord.js": "^12.2.0",
+    "discord.js": "12.2.0",
     "google-spreadsheet": "^3.0.11",
-    "parse-url": "^5.0.1"
+    "parse-url": "^5.0.1",
+    "node": "12"  
   }
 }

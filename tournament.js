@@ -99,10 +99,10 @@ var getMentions = function (command, guild) {
     };
     for (var substr of splitOnSpaces) {
         if (substr[0] === '<' && substr[substr.length - 1] === '>') {
-            if (substr.length === 22 && substr[1] === '@' && substr[2] === '&') {
+            if (substr.length > 21 && substr[1] === '@' && substr[2] === '&') {
                 var snowflake = substr.replace(/[\<\@\&\>]/g, '');
                 mentions.roles.push(guild.roles.resolve(snowflake));
-            } else if (substr.length === 21 && substr[1] === '#') {
+            } else if (substr.length > 21 && substr[1] === '#') {
                 var snowflake = substr.replace(/[\<\#\>]/g, '');
                 mentions.channels.push(guild.channels.resolve(snowflake));
             }
@@ -616,6 +616,7 @@ var confirm = async function (message, prompt, force, failCallback, successCallb
 }
 
 var processCommand = async function (command, message, force) {
+    // console.log("command is " + command);
     // var force = command.indexOf('--force') >= 0 ? 1 : 0;
     /*
     var force = false;
